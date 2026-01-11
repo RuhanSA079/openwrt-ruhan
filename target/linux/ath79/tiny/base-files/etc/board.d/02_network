@@ -12,6 +12,7 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
+	cambium,force200l-sm|\
 	dlink,dap-1720-a1|\
 	engenius,eap350-v1|\
 	engenius,ecb350-v1|\
@@ -140,6 +141,9 @@ ath79_setup_macs()
 	local board="$1"
 
 	case "$board" in
+	cambium,force200l)
+		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
+		;;
 	dlink,dir-615-e4)
 		lan_mac=$(mtd_get_mac_ascii "nvram" "lan_mac")
 		wan_mac=$(mtd_get_mac_ascii "nvram" "wan_mac")
