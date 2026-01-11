@@ -1,0 +1,147 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+// WARNING, EXPERIMENTAL HARDWARE CHANGES ONLY
+
+#include "ar9344.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+        compatible = "cambium,force200l", "qca,ar9342";
+        model = "Cambium Force200L";
+
+        keys {
+                compatible = "gpio-keys";
+
+                reset {
+                        label = "reset";
+                        linux,code = <KEY_RESTART>;
+                        gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+                        debounce-interval = <60>;
+                };
+        };
+};
+
+&gpio {
+        gpio_ext_lna0 {
+                gpio-hog;
+                gpios = <14 GPIO_ACTIVE_HIGH>;
+                output-high;
+                line-name = "ext:lna0";
+        };
+
+        gpio_ext_lna1 {
+                gpio-hog;
+                gpios = <15 GPIO_ACTIVE_HIGH>;
+                output-high;
+                line-name = "ext:lna1";
+        };
+};
+
+&spi {
+        status = "okay";
+
+        flash@0 {
+                compatible = "jedec,spi-nor";
+                reg = <0>;
+                spi-max-frequency = <25000000>;
+
+                partitions {
+                        compatible = "fixed-partitions";
+                        #address-cells = <1>;
+                        #size-cells = <1>;
+
+                        partition@0 {
+                                label = "u-boot";
+                                reg = <0x000000 0x040000>;
+                                read-only;
+                        };
+
+                        partition@40000 {
+                                label = "u-boot-env";
+                                reg = <0x040000 0x010000>;
+                                read-only;
+                        };
+
+                        partition@50000 {
+                                compatible = "denx,uimage";
+                                label = "firmware";
+                                reg = <0x050000 0x7a0000>;
+                        };
+
+                        partition@7f0000 {
+                                label = "art";
+                                reg = <0x7f0000 0x010000>;
+                                read-only;
+
+                                nvmem-layout {
+                                        compatible = "fixed-layout";
+                                        #address-cells = <1>;
+                                        #size-cells = <1>;
+
+                                        macaddr_art_0: macaddr@0 {
+                                                reg = <0x0 0x6>;
+                                        };
+       
+                                       macaddr_art_1: macaddr@1 {
+                                                reg = <0x6 0x6>;
+                                        };
+
+                                        calibration_art_1000: calibration@1000 {
+                                                reg = <0x1000 0x440>;
+                                        };
+
+                                        calibration_art_5000: calibration@5000 {
+                                                reg = <0x5000 0x844>;
+                                        };
+                                };
+                        };
+                };
+        };
+};
+
+&ref {
+        clock-frequency = <40000000>;
+};
+
+&mdio0 {
+        status = "okay";
+
+        phy0: ethernet-phy@0 {
+                phy-mode = "mii";
+                reg = <0>;
+
+        phy0: ethernet-phy@0 {
+                phy-mode = "mii";
+                reg = <0>;
+
+                qca,ar8327-initvals = <
+                        0x04 0x07600000 /* PORT0 PAD MODE CTRL */
+                        0x7c 0x0000007e /* PORT0_STATUS */
+                >;
+        };
+};
+
+&eth0 {
+        status = "okay";
+
+        /* default for ar934x, except for 1000M and 10M */
+        pll-data = <0x06000000 0x00000101 0x00001313>;
+
+        nvmem-cells = <&macaddr_art_0>;
+        nvmem-cell-names = "mac-address";
+
+        phy-mode = "mii";
+        phy-handle = <&phy0>;
+
+        gmac-config {
+                device = <&gmac>;
+        };
+};
+
+&wmac {
+        status = "okay";
+
+       nvmem-cells = <&calibration_art_1000>;
+       nvmem-cell-names = "calibration";
+};
