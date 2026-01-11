@@ -13,6 +13,19 @@ define Device/buffalo_whr-g301n
 endef
 TARGET_DEVICES += buffalo_whr-g301n
 
+define Device/cambium_force200l-sm
+  SOC := ar9342
+  DEVICE_VENDOR := Cambium
+  DEVICE_MODEL := Force200L
+  DEVICE_VARIANT := SM
+  IMAGES += cambium.bin
+  IMAGE/cambium.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+        append-rootfs | pad-rootfs | check-size
+  IMAGE_SIZE := 7808k
+  DEVICE_PACKAGES := -swconfig
+endef
+TARGET_DEVICES += cambium_force200l-sm
+
 define Device/dlink_dap-1720-a1
   $(Device/seama)
   SOC := qca9563
